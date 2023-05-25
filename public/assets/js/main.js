@@ -87,7 +87,7 @@ socket.on('join_room_response', (payload) =>{
     nodeA.append(nodeC);
 
     $("#players").append(nodeA);
-    nodeA.show("fade",1000);
+    nodeA.show("fade", 1000);
 
 
     /*Announcing in the chat someone has arrived*/
@@ -109,7 +109,7 @@ socket.on('player_disconnected', (payload) =>{
     }
     let domElements = $('.socket_'+payload.socket_id);
     if(domElements.length !== 0){
-        domElements.hide("fade",500);
+        domElements.hide("fade", 500);
     }
 
 
