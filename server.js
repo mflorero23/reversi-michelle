@@ -78,7 +78,6 @@ io.on('connection', (socket) => {
 
     socket.on('join_room', (payload) => {
         serverLog('Server received a command','\'join_room\'',JSON.stringify(payload)); 
-
         /* Check that the data coming from the client is good */
         if ((typeof payload == 'undefined') || (payload === null)){
             response = {};
@@ -90,8 +89,7 @@ io.on('connection', (socket) => {
         }
         let room = payload.room;
         let username = payload.username;
-
-        if ((typeof payload == 'undefined') || (payload === null)){
+        if ((typeof payload == 'undefined') || (room === null)){
             response = {};
             response.result = 'fail';
             response.message = 'client did not send a valid room to join';
@@ -112,12 +110,12 @@ io.on('connection', (socket) => {
         socket.join(room);
 
         /* Make sure the client was put in the room */
-        io.in(room).fetchSockets().then((sockets)=> {
+        io.in(room).allSockets().then((sockets)=> {
             /* Socket didn't join the room */
-            if ((typeof sockets == 'undefined') || (sockets === null) || !sockets.includes(socket)){
+            if ((typeof sockets == 'undefined') || (sockets === null) || !sockets.includes(socket)) {
                 response = {};
                 response.result = 'fail';
-                response.message = 'Serval internal error joining chat room';
+                response.message = 'Server internal error joining chat room';
                 socket.emit('join_room_response',response);
                 serverLog('join_room command failed', JSON.stringify(response));
             }
@@ -129,6 +127,7 @@ io.on('connection', (socket) => {
                 }
                 /*Announce to everyone in the room who else is in the room*/
                 for (const member of sockets){
+                    let room = players[member.id.room];
                     response = {
                         result: 'success',
                         socket_id: member.id,
@@ -136,13 +135,16 @@ io.on('connection', (socket) => {
                         username: players[member.id].username,
                         count: sockets.length,
                     }
-               /*Tell everyone that a new user has joined the chat room*/
-               io.of('/').to(room).emit('join_room_response', response);
-               serverLog('join_room succeeded ', JSON.stringify(response));
-            } }
-        });
+                    /*Tell everyone that a new user has joined the chat room*/
+                    io.of('/').to(room).emit('join_room_response', response);
+                    serverLog('join_room succeeded ', JSON.stringify(response));
+                    if (room !== "Lobby") {
+                        send_game_update(socket, room, 'intial update');
+                    }
+                } 
+            }
+         });
     });
-
 
     socket.on('invite', (payload) => {
         serverLog('Server received a command','\'invite\'',JSON.stringify(payload)); 
@@ -291,7 +293,6 @@ io.on('connection', (socket) => {
         });
     });
               
-
     socket.on('game_start', (payload) => {
         serverLog('Server received a command','\'game_start\'',JSON.stringify(payload)); 
 
@@ -393,9 +394,7 @@ io.on('connection', (socket) => {
             'username': the user that send the message,
             'message': the message that was sent
         }
-
     or
-
         {
             'result': 'fail',
             'message': the reason for failure
@@ -457,3 +456,86 @@ io.on('connection', (socket) => {
 
         });
 });
+
+/****************************/
+/* Code realted to game state */
+
+let games = [];
+
+function create_new_game() {
+    let new_game = {};
+    new_game.player_white = {};
+    new_game.player_white.socket = "";
+    new_game.player_white.username = "";
+    new_game.player_black = {};
+    new_game.player_black.socket = "";
+    new_game.player_black.username = "";
+
+    var d = new Date();
+    new_game.last_move_time = d.getTime();
+
+    new_game.whose_turn = 'white';
+
+    new_game.board = [
+        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+        [' ', ' ', ' ', 'w', 'b', ' ', ' ', ' '],
+        [' ', ' ', ' ', 'b', 'w', ' ', ' ', ' '],
+        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+        [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ']
+    ];
+
+    return new_game;
+
+}
+
+
+function send_game_update(socket, game_id, message) {
+
+    /* Check to see if a game with game_id exists */
+    if ((typeof games[game_id] == 'undefined') || (games[game_id] === null)) {
+        console.log("No game exists with game_id:" + game_id + ". Making a new game for " + socket.id);
+        games[game_id] = create_new_game();
+    }
+
+    /* Make sure that only 2 people are in the room */
+    /* Assign this socket a color */
+    io.of('/').to(game_id).allSockets().then((sockets) => {
+
+        const iterator = sockets[Symbol.iterator]();
+        if(sockets.size >= 1) {
+            let first = iterator.next().value;
+            if ((games[game_id].player_white.socket != first) &&
+                (games[game_id].player_black.socket != first)) {
+                /*Player does not have a color */
+                if (games[game_id].player_white.socket === "") {
+                    /* This play should be white */
+                    console.log("White is assigned to: " + first);
+                    games[game_id].player_white.socket = first;
+                    games[game_id].player_white.username = players[first].username;
+                }
+                else if ((games[game_id].player_black.socket === "") {
+                    /* This play should be black */
+                    console.log("Black is assigned to: " + first);
+                    games[game_id].player_black.socket = first;
+                    games[game_id].player_black.username = players[first].username;
+                }
+            
+            ))
+
+        }
+
+
+        /* Send game update */
+        let payload = {
+            result: 'success',
+            game_id: game_id,
+            game: games[game_id],
+            message: message
+        }
+    })
+    io.of("/").to(game_id).emit('game_update', payload);
+
+    }
