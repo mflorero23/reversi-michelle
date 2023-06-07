@@ -210,7 +210,7 @@ socket.on('player_disconnected', (payload) =>{
         domElements.hide("fade", 500);
     }
 
-    let newHTML = '<p class=\'left_room_response\'>'+payload.username+' left the '+payload.room+'. (There are '+payload.count+' users in this room)</p>';
+    let newHTML = '<p class=\'left_room_response\'>' + payload.username+' left the chatroom. There are ' + payload.count + ' users in this room)</p>';
     let newNode = $(newHTML);
     newNode.hide();
     $('#messages').prepend(newNode);
@@ -243,14 +243,14 @@ socket.on('send_chat_message_response', (payload) => {
     newNode.show("fade", 500);
 })
 let old_board = [
-    ['?', '?', '?', '?', '?', '?', '?', '?'],
-    ['?', '?', '?', '?', '?', '?', '?', '?'],
-    ['?', '?', '?', '?', '?', '?', '?', '?'],
-    ['?', '?', '?', 'w', 'b', '?', '?', '?'],
-    ['?', '?', '?', 'b', 'w', '?', '?', '?'],
-    ['?', '?', '?', '?', '?', '?', '?', '?'],
-    ['?', '?', '?', '?', '?', '?', '?', '?'],
-    ['?', '?', '?', '?', '?', '?', '?', '?']
+    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+    [' ', ' ', ' ', 'w', 'b', ' ', ' ', ' '],
+    [' ', ' ', ' ', 'b', 'w', ' ', ' ', ' '],
+    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ']
 ];
 /* sets initial graphics so the following for loop can work */
 for (let row = 0; row < 8; row++) {
@@ -276,6 +276,7 @@ for (let row = 0; row < 8; row++) {
 /* end here */
 
 let my_color = "";
+let interval_timer;
 
 socket.on('game_update', (payload) => {
     if((typeof payload == 'undefined') || (payload === null)) {
@@ -344,45 +345,45 @@ socket.on('game_update', (payload) => {
                 let graphic = "";
                 let altTag = "";
                 if((old_board[row][column] === '?') && (board[row][column] === ' ')) {
-                graphic = "empty.gif";
-                altTag = "empty space";
-                }
+                    graphic = "empty.gif";
+                    altTag = "empty space";
+                    }
                 else if((old_board[row][column] === '?') && (board[row][column] === 'w')) {
-                graphic = "empty_to_white.gif";
-                altTag = "white token";
-                }
+                    graphic = "empty_to_white.gif";
+                    altTag = "white token";
+                    }
                 else if((old_board[row][column] === '?') && (board[row][column] === 'b')) {
-                graphic = "empty_to_black.gif";
-                altTag = "black token";
-                }
+                    graphic = "empty_to_black.gif";
+                    altTag = "black token";
+                    }
                 else if((old_board[row][column] === ' ') && (board[row][column] === 'w')) {
-                graphic = "empty_to_white.gif";
-                altTag = "white token";
-                }
+                    graphic = "empty_to_white.gif";
+                    altTag = "white token";
+                    }
                 else if((old_board[row][column] === ' ') && (board[row][column] === 'b')) {
-                graphic = "empty_to_black.gif";
-                altTag = "black token";
-                }
+                    graphic = "empty_to_black.gif";
+                    altTag = "black token";
+                    }
                 else if((old_board[row][column] === 'w') && (board[row][column] === ' ')) {
-                graphic = "white_to_empty.gif";
-                altTag = "empty space";
-                }
+                    graphic = "white_to_empty.gif";
+                    altTag = "empty space";
+                    }
                 else if((old_board[row][column] === 'b') && (board[row][column] === ' ')) {
-                graphic = "black_to_empty.gif";
-                altTag = "empty space";
-                }
+                    graphic = "black_to_empty.gif";
+                    altTag = "empty space";
+                    }
                 else if((old_board[row][column] === 'w') && (board[row][column] === 'b')) {
-                graphic = "white_to_black.gif";
-                altTag = "black token";
-                }
+                    graphic = "white_to_black.gif";
+                    altTag = "black token";
+                    }
                 else if((old_board[row][column] === 'b') && (board[row][column] === 'w')) {
-                graphic = "black_to_white.gif";
-                altTag = "white token";
-                }
+                    graphic = "black_to_white.gif";
+                    altTag = "white token";
+                    }
                 else {
-                graphic = "error.gif";
-                altTag = "error";
-                }
+                    graphic = "error.gif";
+                    altTag = "error";
+                    }
 
                 const t = Date.now();
                 $('#' + row + '_' + column).html('<img class="img-fluid" src="assets/images/' + graphic + '?time=' + t + '" alt="' + altTag + '" />');
@@ -408,6 +409,33 @@ socket.on('game_update', (payload) => {
             }
         }
     }
+
+    clearInterval(interval_timer)
+    interval_timer = setInterval( ((last_time)  => {
+        return ( () =>{
+            let d = new Date();
+            let elapsed_m = d.getTime() - last_time;
+            let minutes = Math.floor(elapsed_m / (60 * 1000));
+            let seconds = Math.floor((elapsed_m % (60 * 1000)) / 1000);
+            let total = minutes * 60 + seconds;
+            if (total > 100) {
+                total = 100
+            }
+            $("#elapsed").css("width", total + "%").attr("aria-valuenow", total);
+            let timestring = "" + seconds;
+            timestring = timestring.padStart(2, '0');
+            timestring = minutes + ":" + timestring;
+            if (total < 100){
+                $("#elapsed").html(timestring);
+            }
+            else {
+                $("#elapsed").html("Times up!");
+            }
+        })
+    })(payload.game.last_move_time)  
+        , 1000);
+
+
 
     $("#whitesum").html(whitesum);
     $("#blacksum").html(blacksum);
