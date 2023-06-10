@@ -472,7 +472,7 @@ io.on('connection', (socket) => {
             if ((typeof player == 'undefined') || (player === null)){
                 response = {};
                 response.result = 'fail';
-                response.message = 'play token came from an unregistered player';
+                response.message = 'play_token came from an unregistered player';
                 socket.emit('play_token_response',response);
                 serverLog('play_token command failed', JSON.stringify(response));
                 return;
@@ -481,7 +481,7 @@ io.on('connection', (socket) => {
             if ((typeof username == 'undefined') || (username === null)){
                 response = {};
                 response.result = 'fail';
-                response.message = 'play token command did not come from a registered username';
+                response.message = 'play_token command did not come from a registered username';
                 socket.emit('play_token_response',response);
                 serverLog('play_token command failed', JSON.stringify(response));
                 return;
@@ -532,7 +532,7 @@ io.on('connection', (socket) => {
                 response = {};
                 response.result = 'fail';
                 response.message = 'there was no valid color associated with the play token command';
-                socket.emit('play_token_response',response);
+                socket.emit('play_token_response', response);
                 serverLog('play_token command failed', JSON.stringify(response));
                 return;
             }
@@ -561,7 +561,7 @@ io.on('connection', (socket) => {
                 return;
             }
 
-            
+
             let response = {
                 result: 'success'
             }
@@ -695,6 +695,8 @@ function calculate_legal_moves(who, board){
     ];
     for (let row = 0; row < 8; row++) {
         for (let column = 0; column < 8; column++) {
+            if (row === 2 && column == 2)
+                console.log(row + ' ' + column);
             if (board[row][column] === ' ' ){
                 nw = adjacent_support(who,-1, -1, row, column, board);
                 nn = adjacent_support(who,-1, 0, row, column, board);
