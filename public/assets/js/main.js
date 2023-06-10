@@ -196,10 +196,10 @@ socket.on('join_room_response', (payload) =>{
     newNode.show("fade", 500);
 })
 
-socket.on('player_disconnected', (payload) =>{
+socket.on('player_disconnected', (payload) => {
     if(( typeof payload == 'undefined') || (payload === null)){
         console.log('Server did not send a payload');
-        return;;
+        return;
     }
 
     if(payload.socket_id === socket.id){
@@ -230,7 +230,7 @@ function sendChatMessage(){
 socket.on('send_chat_message_response', (payload) => {
     if(( typeof payload == 'undefined') || (payload === null)) {
         console.log('Server did not send a payload');
-        return;;
+        return;
     }
     if(payload.result === 'fail') {
         console.log(payload.message);
@@ -253,26 +253,7 @@ let old_board = [
     [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ']
 ];
 /* sets initial graphics so the following for loop can work */
-for (let row = 0; row < 8; row++) {
-    for (let column = 0; column < 8; column++) {
-      let graphic = "";
-      let altTag = "";
-  
-      if (old_board[row][column] === 'w') {
-        graphic = "white.gif";
-        altTag = "white token";
-      } else if (old_board[row][column] === 'b') {
-        graphic = "black.gif";
-        altTag = "black token";
-      } else {
-        graphic = "error.gif";
-        altTag = "error";
-      }
-  
-      const t = Date.now();
-      $('#' + row + '_' + column).html('<img class="img-fluid" src="assets/images/' + graphic + '?time=' + t + '" alt="' + altTag + '" />');
-    }
-}  
+
 /* end here */
 
 let my_color = "";
@@ -328,6 +309,9 @@ socket.on('game_update', (payload) => {
     }
 
 
+
+
+
     let whitesum = 0;
     let blacksum = 0;
 
@@ -340,6 +324,7 @@ socket.on('game_update', (payload) => {
             else if (board[row][column] === 'b') {
                 blacksum++;
             }
+            
             /*Check to see if the server changed any space on the board*/
             if(old_board[row][column] !== board[row][column]) {
                 let graphic = "";
@@ -391,8 +376,8 @@ socket.on('game_update', (payload) => {
             /* Set up interactivity here */
                 $('#' + row + '_' + column).off('click');
                 $('#' + row + '_' + column).removeClass('hovered_over');
-                if(payload.game.whose_turn === my_color) {
-                    if(payload.game.legal_moves[row][column] === my_color.substr(0,1)) {
+                if (payload.game.whose_turn === my_color) {
+                    if(payload.game.legal_moves[row][column] === my_color.substr(0, 1)) {
                     $('#' + row + '_' + column).addClass('hovered_over');
                     $('#' + row + '_' + column).click(((r, c) => {
                         return (() => {
@@ -404,7 +389,7 @@ socket.on('game_update', (payload) => {
                             console.log('**** Client log message, sending \'play_token\' command: ' + JSON.stringify(payload));
                             socket.emit('play_token', payload);
                         });
-                 })(row,column));
+                 })(row, column));
                 }  
             }
         }
@@ -412,7 +397,7 @@ socket.on('game_update', (payload) => {
 
     clearInterval(interval_timer)
     interval_timer = setInterval( ((last_time)  => {
-        return ( () =>{
+        return ( () => {
             let d = new Date();
             let elapsed_m = d.getTime() - last_time;
             let minutes = Math.floor(elapsed_m / (60 * 1000));
@@ -425,7 +410,7 @@ socket.on('game_update', (payload) => {
             let timestring = "" + seconds;
             timestring = timestring.padStart(2, '0');
             timestring = minutes + ":" + timestring;
-            if (total < 100){
+            if (total < 100) {
                 $("#elapsed").html(timestring);
             }
             else {
@@ -446,7 +431,7 @@ socket.on('game_update', (payload) => {
 socket.on('play_token_response', (payload) => {
     if(( typeof payload == 'undefined') || (payload === null)) {
         console.log('Server did not send a payload');
-        return;;
+        return;
     }
     if(payload.result === 'fail') {
         console.log(payload.message);
@@ -458,7 +443,7 @@ socket.on('play_token_response', (payload) => {
 socket.on('game_over', (payload) => {
     if(( typeof payload == 'undefined') || (payload === null)) {
         console.log('Server did not send a payload');
-        return;;
+        return;
     }
     if(payload.result === 'fail') {
         console.log(payload.message);

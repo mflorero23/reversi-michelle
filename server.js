@@ -1,3 +1,4 @@
+/***********************************/
 /* set up the static file server */
 let static = require('node-static');
 
@@ -17,15 +18,16 @@ if((typeof port == 'undefined') || ( port === null)){
 /* Set up our static file web server to deliver files from the filesystem */
 let file = new static.Server(directory);
 
-let server = function(request,response) {
-    request.addListener('end',
-    function() {
-        file.serve(request,response); 
+let app = http.createServer(
+    function (request, response) {
+        request.addListener('end',
+            function() {
+                file.serve(request, response);
+            }
+        ).resume();
     }
-    ).resume();
-};
+).listen(port);
 
-let app = http.createServer(server).listen(port);
 
 console.log('The server is running');
 
@@ -39,11 +41,12 @@ const { Server } = require("socket.io");
 const io = new Server(app);
 
 io.on('connection', (socket) => {
+
     /* Output a log message on the server and send it to the clients */
     function serverLog(...messages){
-        io.emit('log',['**** Message from the server:\n']);
+        io.emit('log', ['**** Message from the server:\n']);
         messages.forEach((item) => {
-            io.emit('log',['****\t'+item]);
+            io.emit('log', ['****\t' + item]);
             console.log(item);
         });
     }
@@ -51,7 +54,6 @@ io.on('connection', (socket) => {
     serverLog('a page connected to the server: '+socket.id);
 
    
-
     /* join_room comman handler*/
     /*expected payload:
         {
@@ -67,9 +69,7 @@ io.on('connection', (socket) => {
             'count': the number of users in the chat room
             'socket_id': the socket of the user that just joined the room"
         }
-
     or
-
         {
             'result': 'fail',
             'message': the reason for failure
@@ -79,7 +79,7 @@ io.on('connection', (socket) => {
     socket.on('join_room', (payload) => {
         serverLog('Server received a command','\'join_room\'',JSON.stringify(payload)); 
         /* Check that the data coming from the client is good */
-        if ((typeof payload == 'undefined') || (payload === null)){
+        if ((typeof payload == 'undefined') || (payload === null)) {
             response = {};
             response.result = 'fail';
             response.message = 'client did not send a payload';
@@ -110,9 +110,9 @@ io.on('connection', (socket) => {
         socket.join(room);
 
         /* Make sure the client was put in the room */
-        io.in(room).allSockets().then((sockets)=> {
-            /* Socket didn't join the room */
-            if ((typeof sockets == 'undefined') || (sockets === null) || !sockets.has(socket.id)) {
+        io.in(room).fetchSockets().then((sockets)=> {
+            /* Socket didn't join the room */ /* shoud !sockets.includes(socket)) be !sockets.has(socket.id))*/
+            if ((typeof sockets == 'undefined') || (sockets === null) || !sockets.includes(socket)) {
                 response = {};
                 response.result = 'fail';
                 response.message = 'Server internal error joining chat room';
@@ -126,15 +126,14 @@ io.on('connection', (socket) => {
                     room: room
                 }
                 /*Announce to everyone in the room who else is in the room*/
-                for (const memberId of sockets){
-                    let player = players[memberId];
-                    let room = player.room;
+                for (const member of sockets) {
+                    let room = players[member.id].room;
                     response = {
                         result: 'success',
-                        socket_id: memberId,
-                        room: player.room,
-                        username: player.username,
-                        count: sockets.size,
+                        socket_id: member.id,
+                        room: players[member.id].room,
+                        username: players[member.id].username,
+                        count: sockets.length,
                     }
                     /*Tell everyone that a new user has joined the chat room*/
                     io.of('/').to(room).emit('join_room_response', response);
@@ -147,15 +146,16 @@ io.on('connection', (socket) => {
          });
     });
 
-    socket.on('invite', (payload) => {
-        serverLog('Server received a command','\'invite\'',JSON.stringify(payload)); 
+/*june 9 7:12 pm left off here for QA */
 
+    socket.on('invite', (payload) => {
+        serverLog('Server received a command', '\'invite\'', JSON.stringify(payload)); 
         /* Check that the data coming from the client is good */
         if ((typeof payload == 'undefined') || (payload === null)){
             response = {};
             response.result = 'fail';
             response.message = 'client did not send a payload';
-            socket.emit('invite_response',response);
+            socket.emit('invite_response', response);
             serverLog('invite command failed', JSON.stringify(response));
             return;
         }
@@ -491,7 +491,7 @@ io.on('connection', (socket) => {
             if ((typeof game_id == 'undefined') || (game_id === null)) {
                 response = {};
                 response.result = 'fail';
-                response.message = 'there was no valid game associated with the play token commanc';
+                response.message = 'there was no valid game associated with the play token command';
                 socket.emit('play_token_response',response);
                 serverLog('play_token command failed', JSON.stringify(response));
                 return;
@@ -501,8 +501,8 @@ io.on('connection', (socket) => {
             if ((typeof row == 'undefined') || (row === null)) {
                 response = {};
                 response.result = 'fail';
-                response.message = 'there was no valid row associated with the play token commanc';
-                socket.emit('play_token_response',response);
+                response.message = 'there was no valid row associated with the play token command';
+                socket.emit('play_token_response', response);
                 serverLog('play_token command failed', JSON.stringify(response));
                 return;
             }
@@ -511,7 +511,7 @@ io.on('connection', (socket) => {
             if ((typeof column == 'undefined') || (column === null)) {
                 response = {};
                 response.result = 'fail';
-                response.message = 'there was no valid column associated with the play token commanc';
+                response.message = 'there was no valid column associated with the play token command';
                 socket.emit('play_token_response',response);
                 serverLog('play_token command failed', JSON.stringify(response));
                 return;
@@ -521,7 +521,7 @@ io.on('connection', (socket) => {
             if ((typeof color == 'undefined') || (color === null)) {
                 response = {};
                 response.result = 'fail';
-                response.message = 'there was no valid color associated with the play token commanc';
+                response.message = 'there was no valid color associated with the play token command';
                 socket.emit('play_token_response',response);
                 serverLog('play_token command failed', JSON.stringify(response));
                 return;
@@ -531,7 +531,7 @@ io.on('connection', (socket) => {
             if ((typeof game == 'undefined') || (game === null)) {
                 response = {};
                 response.result = 'fail';
-                response.message = 'there was no valid color associated with the play token commanc';
+                response.message = 'there was no valid color associated with the play token command';
                 socket.emit('play_token_response',response);
                 serverLog('play_token command failed', JSON.stringify(response));
                 return;
@@ -549,8 +549,8 @@ io.on('connection', (socket) => {
             }
             /* Make sure the current play is coming from the expected player */
             if (
-                ((game.whose_turn === 'white') && (game.player_white.socket !== socket.id)) ||
-                ((game.whose_turn === 'black') && (game.player_black.socket !== socket.id)) 
+                ((game.whose_turn === 'white') && (game.player_white.socket != socket.id)) ||
+                ((game.whose_turn === 'black') && (game.player_black.socket != socket.id)) 
             ) {
                 let response = {
                     result: 'fail',
@@ -561,6 +561,7 @@ io.on('connection', (socket) => {
                 return;
             }
 
+            
             let response = {
                 result: 'success'
             }
@@ -628,10 +629,10 @@ function create_new_game() {
 function check_line_match(color, dr, dc, r, c, board){
 
     if(board[r][c] === color){
-        return true
+        return true;
     }
     if(board[r][c] === " "){
-        return false
+        return false;
     }
     /* Check to make we sure aren't going to walk off the board */
     if (( r + dr < 0 ) || ( r + dr > 7)) {
@@ -666,7 +667,7 @@ function adjacent_support(who, dr, dc, r, c, board){
     }
 
 /* Check that the opposite color is present */
-if (board[r+dr][c+dc] !== other){
+if (board[ r + dr ][ c + dc ] !== other){
     return false;
 }
 
@@ -679,12 +680,9 @@ if (( c + dc + dc < 0 ) || ( c + dc + dc > 7)){
 }
 
 return check_line_match(who, dr, dc, r+dr+dr, c+dc+dc, board);
-
-
-
-
 }
-function calculate_legal_moves(who,board){
+
+function calculate_legal_moves(who, board){
     let legal_moves = [
         [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
         [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
