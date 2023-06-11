@@ -649,7 +649,7 @@ function check_line_match(color, dr, dc, r, c, board){
 function adjacent_support(who, dr, dc, r, c, board){
     let other;
     if (who === 'b'){
-        other = 'w'
+        other = 'w';
     }
     else if (who === 'w'){
         other = 'b';
@@ -672,7 +672,7 @@ if (board[ r + dr ][ c + dc ] !== other){
 }
 
  /* Check to make sure that there is space for a matching color to capture tokens */
- if (( r + dr + dc < 0 ) || ( r + dr + dr > 7)){
+ if (( r + dr + dr < 0 ) || ( r + dr + dr > 7)){
     return false;
 }
 if (( c + dc + dc < 0 ) || ( c + dc + dc > 7)){
@@ -790,7 +790,7 @@ function send_game_update(socket, game_id, message) {
                     games[game_id].player_black.username = players[first].username;
                 }
                 else {
-                    /* This player shouldn't be kicket out */
+                    /* This player should be kicked out */
                     console.log("Kicking : " + first + " out of game: " + game_id);
                     io.in(first).socketsLeave([game_id]);
                 }
@@ -814,7 +814,7 @@ function send_game_update(socket, game_id, message) {
                     games[game_id].player_black.username = players[second].username;
                 }
                 else {
-                    /* This player shouldn't be kicket out */
+                    /* This player should be kicked out */
                     console.log("Kicking : " + second + " out of game: " + game_id);
                     io.in(second).socketsLeave([game_id]);
                 }

@@ -242,18 +242,37 @@ socket.on('send_chat_message_response', (payload) => {
     $('#messages').prepend(newNode);
     newNode.show("fade", 500);
 })
+/*june 10th 5:05 pm video part 19 said to replace all empty spaces on board with "?". Is this still true?*/
 let old_board = [
-    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-    [' ', ' ', ' ', 'w', 'b', ' ', ' ', ' '],
-    [' ', ' ', ' ', 'b', 'w', ' ', ' ', ' '],
-    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
-    [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ']
+    ['?', '?', '?', '?', '?', '?', '?', '?'],
+    ['?', '?', '?', '?', '?', '?', '?', '?'],
+    ['?', '?', '?', '?', '?', '?', '?', '?'],
+    ['?', '?', '?', 'w', 'b', '?', '?', '?'],
+    ['?', '?', '?', 'b', 'w', '?', '?', '?'],
+    ['?', '?', '?', '?', '?', '?', '?', '?'],
+    ['?', '?', '?', '?', '?', '?', '?', '?'],
+    ['?', '?', '?', '?', '?', '?', '?', '?']
 ];
 /* sets initial graphics so the following for loop can work */
-
+for (let row = 0; row < 8; row++) {
+    for (let column = 0; column < 8; column++) {
+    let graphic = "";
+    let altTag = "";
+    if (old_board[row][column] === 'w') {
+    graphic = "white.gif";
+    altTag = "white token";
+    } else if (old_board[row][column] === 'b') {
+    graphic = "black.gif";
+    altTag = "black token";
+    } else {
+    graphic = "error.gif";
+    altTag = "error";
+    }
+    const t = Date.now();
+    $('#' + row + '_' + column).html('<img class="img-fluid" src="assets/images/' + graphic + '?time=' + t + '" alt="' + altTag + '" />');
+    }
+    }
+    
 /* end here */
 
 let my_color = "";
@@ -380,7 +399,7 @@ socket.on('game_update', (payload) => {
                     if(payload.game.legal_moves[row][column] === my_color.substr(0, 1)) {
                     $('#' + row + '_' + column).addClass('hovered_over');
                     $('#' + row + '_' + column).click(((r, c) => {
-                        return (() => {
+                        return ( () => {
                             let payload = {
                                 row: r,
                                 column: c,
@@ -424,7 +443,7 @@ socket.on('game_update', (payload) => {
 
     $("#whitesum").html(whitesum);
     $("#blacksum").html(blacksum);
-    old_board = board;
+    old_board = board; /*should this be here? june 10 5:17 pm*/
 })
 
 
