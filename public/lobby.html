@@ -8,26 +8,31 @@
       rel="stylesheet" integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ" 
       crossorigin="anonymous">
     <style>
+      body {
+        background-color: #231F20;
+        color: white;
+      }
       .headerrow {
-        background-color: darkseagreen;
+        background-color: #F600FF;
       }
       #messagePane {
-        background-color: rgb(211, 230, 211);
+        background-color: #343131;
       }
+
       .join_room_response,
       .left_room_response {
-        background-color: rgb(247, 247, 247);
+        background-color: #343131;
       }
       .chat_message {
         font-size:125%;
-        margin: 1px 1px 1px 1px;
-        color: rgb(0, 0, 0);
+        margin: 4px 4px 4px 4px;
+        color: white;
       }
     </style>
   </head>
   <body>
     <div class="container-fluid">
-      <div class="row m-3 headerrow">
+      <div class="row m-5">
         <div class="col text-center">
           <h3 id="lobbyTitle">Lobby</h3>
         </div>
@@ -42,7 +47,7 @@
               </div>
             </div>
             </div>
-            <div class="col-md-8" id="messagePane">
+            <div class="col-md-8 p-4" id="messagePane">
               <div>
                 <h4>Messages</h4>
               </div>
